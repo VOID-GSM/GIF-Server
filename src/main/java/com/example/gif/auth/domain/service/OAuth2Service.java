@@ -44,7 +44,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 
         updateOrSaveUser(userProfile);
 
-        Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userPRofile);
+        Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("USER")),
@@ -66,7 +66,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     public User updateOrSaveUser(UserProfile userProfile) {
         User user = userRepository
                 .findUserByEmailAndProvider(userProfile.getEmail(), userProfile.getProvider())
-                .map(value -> value.updateUSer(userProfile.getUsername(), userProfile.getProvider()))
+                .map(value -> value.updateUser(userProfile.getUsername(), userProfile.getProvider()))
                 .orElse(userProfile.toEntity());
 
         return userRepository.save(user);

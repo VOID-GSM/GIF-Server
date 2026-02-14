@@ -1,6 +1,7 @@
 package com.example.gif.auth.global.security.oauth;
 
 import com.example.gif.auth.domain.dto.UserProfile;
+import com.example.gif.auth.domain.entity.User;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -9,11 +10,12 @@ import java.util.function.Function;
 public enum OAuthAttributes {
 
     GOOGLE("google", (attribute) -> {
-        UserProfile userProfile = new UserProfile();
-        userProfile.setUsername((String)attribute.get("name"));
-        userProfile.setEmail((String)attribute.get("email"));
-
-        return userProfile;
+        return UserProfile.builder()
+                .username((String) attribute.get("name"))
+                .email((String) attribute.get("email"))
+                .provider(User.Provider.GOOGLE)
+                .providerId((String) attribute.get("sub")) // Google 고유 ID
+                .build();
     });
 
     private final String registerationId;

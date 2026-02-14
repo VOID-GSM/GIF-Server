@@ -1,6 +1,7 @@
 package com.example.gif.auth.domain.entity;
 
 import jakarta.persistence.*;
+import jakarta.websocket.ClientEndpoint;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -24,8 +25,39 @@ public class User {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "provider", nullable = false)
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Provider provider;
+
+    @Column(nullable = false, unique = true)
+    private String providerId;
+
+    @Column(unique = true)
+    private String studentNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserType userType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    public enum Provider {
+        GOOGLE
+    }
+
+    public enum UserType {
+        ADMIN,
+        CLIENT
+    }
+
+    public enum Role {
+        MASTER,
+        ADMIN,
+        LEADER,
+        MEMBER
+    }
 
     public User updateUser(String username, String email) {
         this.username = username;

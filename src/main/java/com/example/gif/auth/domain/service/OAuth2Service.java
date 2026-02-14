@@ -40,7 +40,6 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         UserProfile userProfile = OAuthAttributes.extract(registrationId, attributes);
-        userProfile.setProvider(registrationId);
 
         updateOrSaveUser(userProfile);
 
@@ -65,8 +64,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 
     public User updateOrSaveUser(UserProfile userProfile) {
         User user = userRepository
-                .findUserByEmailAndProvider(userProfile.getEmail(), userProfile.getProvider())
-                .map(value -> value.updateUser(userProfile.getUsername(), userProfile.getProvider()))
+                .findByProviderAndProviderId(userProfile.getProvider(), userProfile.getProviderId())
+                .map(value -> value.updateUser(userProfile.getUsername(), userProfile.getEmail()))
                 .orElse(userProfile.toEntity());
 
         return userRepository.save(user);

@@ -48,9 +48,15 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                         .getRequest();
 
-        String state = request.getParameter("state");
+        String loginType = (String) request.getSession().getAttribute("loginType");
 
-        updateOrSaveUser(userProfile, state);
+        if(loginType == null) {
+            loginType = "client";
+        }
+
+        updateOrSaveUser(userProfile, loginType);
+
+        request.getSession().removeAttribute("loginType");
 
         Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
 
@@ -71,7 +77,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         return customAttribute;
     }
 
-    public User updateOrSaveUser(UserProfile profile, String state) {
+    public User updateOrSaveUser(UserProfile profile, String loginType) {
 
         User user =  userRepository
                 .findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
@@ -82,7 +88,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 .orElseGet(() -> {
 
                     User.UserType userType =
-                            "admin".equals(state)
+                            "admin".equals(loginType)
                                     ? User.UserType.ADMIN
                                     : User.UserType.CLIENT;
 

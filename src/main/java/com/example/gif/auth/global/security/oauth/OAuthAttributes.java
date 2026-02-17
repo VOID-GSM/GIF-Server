@@ -14,7 +14,7 @@ public enum OAuthAttributes {
                 .username((String) attribute.get("name"))
                 .email((String) attribute.get("email"))
                 .provider(User.Provider.GOOGLE)
-                .providerId((String) attribute.get("sub")) // Google 고유 ID
+                .providerId((String) attribute.get("sub"))
                 .build();
     });
 

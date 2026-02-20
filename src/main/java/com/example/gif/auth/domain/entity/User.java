@@ -62,4 +62,23 @@ public class User {
         this.email = email;
         return this;
     }
+
+    public void completeClientInfo(String username, String studentNumber, Role role) {
+        if(this.userType != UserType.CLIENT) {
+            throw new IllegalStateException("Client만 가능");
+        }
+
+        this.username = username;
+        this.studentNumber = studentNumber;
+        this.role = role;
+    }
+
+    public void completeAdminInfo(String username, Role role) {
+        if(this.userType != UserType.ADMIN) {
+            throw new IllegalStateException("Admin만 가능");
+        }
+
+        this.username = username;
+        this.role = role;
+    }
 }

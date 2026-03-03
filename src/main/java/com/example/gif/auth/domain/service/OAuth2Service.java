@@ -1,10 +1,13 @@
 package com.example.gif.auth.domain.service;
 
+import com.example.gif.auth.domain.dto.AdminAdditionalInfo;
+import com.example.gif.auth.domain.dto.ClientAdditionalInfo;
 import com.example.gif.auth.domain.dto.UserProfile;
 import com.example.gif.auth.domain.entity.User;
 import com.example.gif.auth.domain.repository.UserRepository;
 import com.example.gif.auth.global.security.oauth.OAuthAttributes;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -26,6 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final UserRepository userRepository;
+
+    private User findUser (Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
+    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -52,7 +60,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 
         updateOrSaveUser(userProfile, loginType);
 
-        request.getSession().removeAttribute("loginType");
+//        request.getSession().removeAttribute("loginType");
 
         Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
 
@@ -74,6 +82,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     }
 
     public User updateOrSaveUser(UserProfile profile, String loginType) {
+
+        System.out.println("loginType = [" + loginType + "]");
 
         User user =  userRepository
                 .findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
@@ -99,5 +109,29 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 });
 
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public void completeClientInfo(Long userId, ClientAdditionalInfo request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+
+        user.completeClientInfo(
+                request.getUsername(),
+                request.getStudentNumber(),
+                request.getRole()
+        );
+    }
+
+    @Transactional
+    public void completeAdminInfo(Long userId, AdminAdditionalInfo request) {
+
+        User user = findUser(userId);
+
+        user.completeAdminInfo(
+                request.getUsername(),
+                request.getRole()
+        );
     }
 }

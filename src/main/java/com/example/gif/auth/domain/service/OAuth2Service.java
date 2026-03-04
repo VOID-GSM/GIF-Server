@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -26,89 +24,63 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
-public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class OAuth2Service extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
-    private User findUser (Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
-    }
-
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2UserService oAuth2UserService = new DefaultOAuth2UserService();
-        OAuth2User oAuth2User = oAuth2UserService.loadUser(userRequest);
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        String userNameAttributeName = userRequest
-                .getClientRegistration()
-                .getProviderDetails()
-                .getUserInfoEndpoint()
-                .getUserNameAttributeName();
+        String userNameAttributeName =
+                userRequest.getClientRegistration()
+                        .getProviderDetails()
+                        .getUserInfoEndpoint()
+                        .getUserNameAttributeName();
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         UserProfile userProfile = OAuthAttributes.extract(registrationId, attributes);
 
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                        .getRequest();
-
-        String loginType = (String) request.getSession().getAttribute("loginType");
-
-        updateOrSaveUser(userProfile, loginType);
-
-//        request.getSession().removeAttribute("loginType");
-
-        Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
-
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST")),
-                customAttribute,
-                userNameAttributeName);
-    }
-
-    public Map getCustomAttribute(String registrationId, String userNameAttributeName, Map<String, Object> attributes, UserProfile userProfile) {
         Map<String, Object> customAttribute = new ConcurrentHashMap<>();
-
         customAttribute.put(userNameAttributeName, attributes.get(userNameAttributeName));
         customAttribute.put("provider", registrationId);
         customAttribute.put("name", userProfile.getUsername());
         customAttribute.put("email", userProfile.getEmail());
 
-        return customAttribute;
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST")),
+                customAttribute,
+                userNameAttributeName
+        );
     }
 
-    public User updateOrSaveUser(UserProfile profile, String loginType) {
+    private void saveOrUpdateUser(UserProfile profile, String loginType) {
 
-        System.out.println("loginType = [" + loginType + "]");
+        User.UserType userType =
+                "admin".equalsIgnoreCase(loginType)
+                        ? User.UserType.ADMIN
+                        : User.UserType.CLIENT;
 
-        User user =  userRepository
-                .findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
-                .map(existing -> {
-                    existing.updateUser(profile.getUsername(), profile.getEmail());
-                    return existing;
-                })
-                .orElseGet(() -> {
-
-                    User.UserType userType =
-                            "admin".equals(loginType)
-                                    ? User.UserType.ADMIN
-                                    : User.UserType.CLIENT;
-
-                    return User.builder()
-                                    .username(profile.getUsername())
-                                    .email(profile.getEmail())
-                                    .provider(profile.getProvider())
-                                    .providerId(profile.getProviderId())
-                                    .userType(userType)
-                                    .role(null)
-                                    .build();
-                });
-
-        return userRepository.save(user);
+        userRepository.findByProviderAndProviderId(
+                        profile.getProvider(),
+                        profile.getProviderId()
+                )
+                .orElseGet(() ->
+                        userRepository.save(
+                                User.builder()
+                                        .username(profile.getUsername())
+                                        .email(profile.getEmail())
+                                        .provider(profile.getProvider())
+                                        .providerId(profile.getProviderId())
+                                        .userType(userType)
+                                        .role(null)
+                                        .build()
+                        )
+                );
     }
 
     @Transactional
@@ -127,7 +99,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     @Transactional
     public void completeAdminInfo(Long userId, AdminAdditionalInfo request) {
 
-        User user = findUser(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
 
         user.completeAdminInfo(
                 request.getUsername(),

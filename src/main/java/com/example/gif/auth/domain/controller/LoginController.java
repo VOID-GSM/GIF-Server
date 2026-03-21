@@ -26,7 +26,7 @@ public class LoginController {
         return "redirect:/oauth2/authorization/google";
     }
 
-    @GetMapping("client/login")
+    @GetMapping("/client/login")
     public String clientLogin(HttpServletRequest request) {
         request.getSession().setAttribute("loginType", "client");
         return "redirect:/oauth2/authorization/google";

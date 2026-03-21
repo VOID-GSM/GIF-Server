@@ -45,6 +45,8 @@ public class OAuth2Service extends DefaultOAuth2UserService {
 
         UserProfile userProfile = OAuthAttributes.extract(registrationId, attributes);
 
+        saveOrUpdateUser(userProfile, "client");
+
         Map<String, Object> customAttribute = new ConcurrentHashMap<>();
         customAttribute.put(userNameAttributeName, attributes.get(userNameAttributeName));
         customAttribute.put("provider", registrationId);

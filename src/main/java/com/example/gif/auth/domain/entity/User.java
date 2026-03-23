@@ -1,10 +1,8 @@
 package com.example.gif.auth.domain.entity;
 
 import jakarta.persistence.*;
-import jakarta.websocket.ClientEndpoint;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter

@@ -59,6 +59,7 @@ public class OAuth2Service extends DefaultOAuth2UserService {
                 : User.UserType.CLIENT;
 
         return userRepository.findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
+                .map(user -> user.updateUser(profile.getUsername(), profile.getEmail()))
                 .orElseGet(() -> userRepository.save(
                         User.builder()
                                 .username(profile.getUsername())
@@ -66,7 +67,7 @@ public class OAuth2Service extends DefaultOAuth2UserService {
                                 .provider(profile.getProvider())
                                 .providerId(profile.getProviderId())
                                 .userType(userType)
-                                .role(null)
+                                .role(User.Role.GUEST)
                                 .build()
                 ));
     }

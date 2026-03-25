@@ -37,6 +37,7 @@ public class User {
     @Column(nullable = false)
     private UserType userType;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public enum Provider {

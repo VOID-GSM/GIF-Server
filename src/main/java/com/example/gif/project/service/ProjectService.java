@@ -30,4 +30,19 @@ public class ProjectService {
 
         return savedProject.getId();
     }
+
+    @Transactional
+    public void updateDescription(String providerId,
+                                  Long projectId,
+                                  String description) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트 없음"));
+
+        if (!project.getLeaderProviderId().equals(providerId)) {
+            throw new IllegalArgumentException("수정 권한 없음");
+        }
+
+        project.updateDescription(description);
+    }
 }

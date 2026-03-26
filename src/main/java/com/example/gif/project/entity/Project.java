@@ -1,6 +1,7 @@
 package com.example.gif.project.entity;
 
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -45,6 +46,10 @@ public class Project {
         this.leaderProviderId = leaderProviderId;
         this.teamLogoUrl = teamLogoUrl;
         this.memberProviderIds = memberProviderIds;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
     }
 
 }

@@ -7,6 +7,7 @@ import com.example.gif.auth.domain.service.OAuth2Service;
 import com.example.gif.auth.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,14 +23,17 @@ public class LoginController {
     private final OAuth2Service service;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Value("${oauth2.authorization.google-uri}")
+    private String googleLoginBaseUri;
+
     @GetMapping("/admin/login")
     public void adminLogin(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google?loginType=admin");
+        response.sendRedirect(googleLoginBaseUri + "?loginType=admin");
     }
 
     @GetMapping("/client/login")
     public void clientLogin(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google?loginType=client");
+        response.sendRedirect(googleLoginBaseUri + "?loginType=client");
     }
 
     @PostMapping("/client/additional-info")

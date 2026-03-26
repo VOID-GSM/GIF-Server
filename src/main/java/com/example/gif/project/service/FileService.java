@@ -1,5 +1,6 @@
 package com.example.gif.project.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,7 +9,8 @@ import java.io.File;
 @Service
 public class FileService {
 
-    private final String uploadDir = "C:/upload/"; // 원하는 경로
+    @Value("${spring.file.upload-dir}")
+    private String uploadDir;
 
     public String upload(MultipartFile file) {
 
@@ -20,8 +22,8 @@ public class FileService {
 
             return "/images/" + fileName;
 
-        } catch (Exception e) {
-            throw new RuntimeException("파일 업로드 실패");
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("파일 업로드 실패", e);
         }
     }
 }

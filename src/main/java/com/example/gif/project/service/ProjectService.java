@@ -15,7 +15,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     @Transactional
-    public void createProject(String providerId, ProjectCreateRequest request) {
+    public Long createProject(String providerId, ProjectCreateRequest request) {
 
         Project project = new Project(
                 request.getProjectName(),
@@ -26,6 +26,8 @@ public class ProjectService {
                 request.getMemberProviderIds()
         );
 
-        projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+
+        return savedProject.getId();
     }
 }

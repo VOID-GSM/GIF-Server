@@ -7,7 +7,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,4 +24,8 @@ public class FormSubmission {
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL)
     private List<FormAnswer> answers;
+
+    public void addAnswer(FormAnswer answer) {
+        answers.add(answer);
+    }
 }

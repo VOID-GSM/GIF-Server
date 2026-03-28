@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,23 +26,24 @@ public class FormService {
         Form form = Form.builder()
                 .title(request.getTitle())
                 .deadline(request.getDeadline())
+                .createdBy("admin")
                 .build();
 
-        List<FormField> fields = request.getFields().stream()
-                .map(f -> FormField.builder()
-                        .question(f.getQuestion())
-                        .type(f.getType())
-                        .form(form)
-                        .build())
-                .toList();
+        for (FormCreateRequest.FieldDto f : request.getFields()) {
+            FormField field = FormField.builder()
+                    .question(f.getQuestion())
+                    .type(f.getType())
+                    .build();
 
-        form.setFields(fields);
+            form.addField(field);
+        }
+
         formRepository.save(form);
     }
 
     public Form getForm(Long formId) {
         return formRepository.findById(formId)
-                .orElseThrow(() -> new RuntimeException("폼 없음"));
+                .orElseThrow(() -> new RuntimeException("양식이 존재하지 않습니다"));
     }
 
     public void submit(Long formId, FormSubmitRequest request, List<MultipartFile> files) {
@@ -56,7 +56,6 @@ public class FormService {
                 .userId(1L)
                 .build();
 
-        List<FormAnswer> answers = new ArrayList<>();
         int fileIndex = 0;
 
         for (AnswerRequest req : request.getAnswers()) {
@@ -64,27 +63,18 @@ public class FormService {
             FormField field = fieldRepository.findById(req.getFieldId())
                     .orElseThrow();
 
-            FormAnswer answer = new FormAnswer();
-            answer.setSubmission(submission);
-            answer.setField(field);
+            FormAnswer answer;
 
             if (field.getType() == FieldType.FILE) {
-
-                if (files == null || fileIndex >= files.size()) {
-                    throw new RuntimeException("파일 부족");
-                }
-
                 String url = fileService.upload(files.get(fileIndex++));
-                answer.setFileUrl(url);
-
+                answer = FormAnswer.of(submission, field, null, url);
             } else {
-                answer.setAnswer(req.getAnswer());
+                answer = FormAnswer.of(submission, field, req.getAnswer(), null);
             }
 
-            answers.add(answer);
+            submission.addAnswer(answer);
         }
 
-        submission.setAnswers(answers);
         submissionRepository.save(submission);
     }
 }

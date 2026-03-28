@@ -9,7 +9,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -27,4 +26,9 @@ public class Form {
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FormField> fields = new ArrayList<>();
+
+    public void addField(FormField field) {
+        fields.add(field);
+        field.setForm(this);
+    }
 }

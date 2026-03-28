@@ -6,7 +6,6 @@ import lombok.*;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,4 +30,13 @@ public class FormAnswer {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "field_id")
     private FormField field;
+
+    public static FormAnswer of(FormSubmission submission, FormField field, String answer, String fileUrl) {
+        return FormAnswer.builder()
+                .submission(submission)
+                .field(field)
+                .answer(answer)
+                .fileUrl(fileUrl)
+                .build();
+    }
 }

@@ -12,5 +12,6 @@ public class ProjectCreateRequest {
     private String description;
     private List<String> memberProviderIds;
     private String teamLogoUrl;
+    private Integer grade;
 
 }

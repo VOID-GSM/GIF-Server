@@ -19,14 +19,20 @@ public class SecurityConfig {
     private final OAuth2Service oAuth2Service;
     private final CustomOAuth2SuccessHandler successHandler;
     private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // 💡 추가
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/auth/**", "/oauth2/**", "/oauth/loginInfo").permitAll()
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/oauth2/**", "/oauth/loginInfo").permitAll()
+                        .requestMatchers("/auth/admin/login", "/auth/client/login").permitAll()
+
+                        .requestMatchers("/auth/client/additional-info").hasRole("GUEST")
+                        .requestMatchers("/auth/admin/additional-info").hasRole("GUEST")
+
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

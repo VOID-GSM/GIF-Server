@@ -37,6 +37,8 @@ public class User {
     @Column(nullable = false)
     private UserType userType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
     public enum Provider {
@@ -49,6 +51,7 @@ public class User {
     }
 
     public enum Role {
+        GUEST,
         MASTER,
         ADMIN,
         LEADER,

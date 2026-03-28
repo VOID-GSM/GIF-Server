@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class FileService {
@@ -20,9 +22,29 @@ public class FileService {
             File dest = new File(uploadDir + fileName);
             file.transferTo(dest);
 
-            return "/images/" + fileName;
+            return "/upload/" + fileName;
 
         } catch (java.io.IOException e) {
+            throw new RuntimeException("파일 업로드 실패", e);
+        }
+    }
+
+    public String uploadFile(MultipartFile file) {
+        try {
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            String uuid = UUID.randomUUID().toString();
+            String originalName = file.getOriginalFilename();
+            String savedName = uuid + "_" + originalName;
+
+            File dest = new File(uploadDir + savedName);
+            file.transferTo(dest);
+            return "/uploads/" + savedName;
+
+        } catch (IOException e) {
             throw new RuntimeException("파일 업로드 실패", e);
         }
     }

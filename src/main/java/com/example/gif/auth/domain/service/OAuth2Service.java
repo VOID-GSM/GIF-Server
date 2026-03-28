@@ -6,7 +6,6 @@ import com.example.gif.auth.domain.dto.UserProfile;
 import com.example.gif.auth.domain.entity.User;
 import com.example.gif.auth.domain.repository.UserRepository;
 import com.example.gif.auth.global.security.oauth.OAuthAttributes;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,12 +14,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -33,36 +27,33 @@ public class OAuth2Service extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         Object loginTypeObj = userRequest.getAdditionalParameters().get("loginType");
-        String loginType = (loginTypeObj != null) ? loginTypeObj.toString() : null;
+        String loginType = (loginTypeObj != null) ? loginTypeObj.toString() : "client";
 
-        if (loginType == null) {
-            loginType = getLoginTypeFromRequest();
-        }
+        UserProfile userProfile = OAuthAttributes.extract(
+                userRequest.getClientRegistration().getRegistrationId(),
+                oAuth2User.getAttributes()
+        );
 
-        String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        String userNameAttributeName = userRequest.getClientRegistration()
-                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+        User user = saveOrUpdateUser(userProfile, loginType);
 
-        UserProfile userProfile = OAuthAttributes.extract(registrationId, oAuth2User.getAttributes());
-
-        saveOrUpdateUser(userProfile, loginType);
-
-        Map<String, Object> customAttribute = new ConcurrentHashMap<>(oAuth2User.getAttributes());
-        customAttribute.put("loginType", loginType);
+        String authority = (user.getRole() != null)
+                ? "ROLE_" + user.getRole().name()
+                : "ROLE_" + user.getUserType().name();
 
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST")),
-                customAttribute,
-                userNameAttributeName
+                Collections.singleton(new SimpleGrantedAuthority(authority)),
+                oAuth2User.getAttributes(),
+                userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName()
         );
     }
 
-    private void saveOrUpdateUser(UserProfile profile, String loginType) {
+    private User saveOrUpdateUser(UserProfile profile, String loginType) {
         User.UserType userType = "admin".equalsIgnoreCase(loginType)
                 ? User.UserType.ADMIN
                 : User.UserType.CLIENT;
 
-        userRepository.findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
+        return userRepository.findByProviderAndProviderId(profile.getProvider(), profile.getProviderId())
+                .map(user -> user.updateUser(profile.getUsername(), profile.getEmail()))
                 .orElseGet(() -> userRepository.save(
                         User.builder()
                                 .username(profile.getUsername())
@@ -70,12 +61,13 @@ public class OAuth2Service extends DefaultOAuth2UserService {
                                 .provider(profile.getProvider())
                                 .providerId(profile.getProviderId())
                                 .userType(userType)
+                                .role(User.Role.GUEST)
                                 .build()
                 ));
     }
 
     @Transactional
-    public void completeClientInfo(String providerId, ClientAdditionalInfo request) {
+    public User completeClientInfo(String providerId, ClientAdditionalInfo request) {
         User user = userRepository.findByProviderAndProviderId(User.Provider.GOOGLE, providerId)
                 .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
 
@@ -84,10 +76,11 @@ public class OAuth2Service extends DefaultOAuth2UserService {
                 request.getStudentNumber(),
                 request.getRole()
         );
+        return user;
     }
 
     @Transactional
-    public void completeAdminInfo(String providerId, AdminAdditionalInfo request) {
+    public User completeAdminInfo(String providerId, AdminAdditionalInfo request) {
         User user = userRepository.findByProviderAndProviderId(User.Provider.GOOGLE, providerId)
                 .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
 
@@ -95,15 +88,6 @@ public class OAuth2Service extends DefaultOAuth2UserService {
                 request.getUsername(),
                 request.getRole()
         );
-    }
-
-    private String getLoginTypeFromRequest() {
-        try {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            String loginType = (String) request.getSession().getAttribute("loginType");
-            return (loginType != null) ? loginType : "client";
-        } catch (Exception e) {
-            return "client";
-        }
+        return user;
     }
 }

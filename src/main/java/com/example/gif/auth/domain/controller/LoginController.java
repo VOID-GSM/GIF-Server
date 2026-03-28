@@ -2,11 +2,18 @@ package com.example.gif.auth.domain.controller;
 
 import com.example.gif.auth.domain.dto.AdminAdditionalInfo;
 import com.example.gif.auth.domain.dto.ClientAdditionalInfo;
+import com.example.gif.auth.domain.entity.User;
 import com.example.gif.auth.domain.service.OAuth2Service;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.gif.auth.global.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -14,30 +21,45 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     private final OAuth2Service service;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${oauth2.authorization.google-uri}")
+    private String googleLoginBaseUri;
 
     @GetMapping("/admin/login")
-    public String adminLogin(HttpServletRequest request) {
-        request.getSession().setAttribute("loginType", "admin");
-        return "redirect:/oauth2/authorization/google";
+    public void adminLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect(googleLoginBaseUri + "?loginType=admin");
     }
 
     @GetMapping("/client/login")
-    public String clientLogin(HttpServletRequest request) {
-        request.getSession().setAttribute("loginType", "client");
-        return "redirect:/oauth2/authorization/google";
+    public void clientLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect(googleLoginBaseUri + "?loginType=client");
     }
 
     @PostMapping("/client/additional-info")
-    public String completeClientInfo(Authentication authentication, @RequestBody ClientAdditionalInfo request) {
-        String providerId = authentication.getName(); // JWT 필터에서 가져온 ID
-        service.completeClientInfo(providerId, request);
-        return "client 정보 저장 완료";
+    public ResponseEntity<Map<String, Object>> completeClientInfo(Authentication authentication, @RequestBody ClientAdditionalInfo request) {
+        String providerId = authentication.getName();
+        User user = service.completeClientInfo(providerId, request);
+
+        String roleName = "ROLE_" + user.getRole().name();
+        String newToken = jwtTokenProvider.createToken(user.getProviderId(), user.getEmail(), roleName);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "client 정보 저장",
+                "accessToken", newToken
+        ));
     }
 
     @PostMapping("/admin/additional-info")
-    public String completeAdminInfo(Authentication authentication, @RequestBody AdminAdditionalInfo request) {
+    public ResponseEntity<Map<String, Object>> completeAdminInfo(Authentication authentication, @RequestBody AdminAdditionalInfo request) {
         String providerId = authentication.getName();
-        service.completeAdminInfo(providerId, request);
-        return "admin 정보 저장 완료";
+        User user = service.completeAdminInfo(providerId, request);
+
+        String newToken = jwtTokenProvider.createToken(user.getProviderId(), user.getEmail(), "ROLE_ADMIN");
+
+        return ResponseEntity.ok(Map.of(
+                "message", "admin 정보 저장",
+                "accessToken", newToken
+        ));
     }
 }

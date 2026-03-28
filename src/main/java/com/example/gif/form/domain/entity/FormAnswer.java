@@ -1,6 +1,5 @@
 package com.example.gif.form.domain.entity;
 
-import com.example.gif.form.domain.dto.FormResponse;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,10 +21,6 @@ public class FormAnswer {
     @ManyToOne
     @JoinColumn(name = "submission_id")
     private FormSubmission submission;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "response_id")
-    private FormResponse response;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "field_id")

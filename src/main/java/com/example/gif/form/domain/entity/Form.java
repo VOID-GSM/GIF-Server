@@ -25,6 +25,7 @@ public class Form {
     private String createdBy;
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<FormField> fields = new ArrayList<>();
 
     public void addField(FormField field) {

@@ -21,8 +21,6 @@ public class FormField {
     @Enumerated(EnumType.STRING)
     private FieldType type;
 
-    private int orders;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form_id")
     private Form form;

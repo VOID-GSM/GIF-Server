@@ -3,6 +3,7 @@ package com.example.gif.form.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,7 +24,8 @@ public class FormSubmission {
     private Long userId;
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL)
-    private List<FormAnswer> answers;
+    @Builder.Default
+    private List<FormAnswer> answers = new ArrayList<>();
 
     public void addAnswer(FormAnswer answer) {
         answers.add(answer);

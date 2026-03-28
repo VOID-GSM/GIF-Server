@@ -19,7 +19,7 @@ public class SecurityConfig {
     private final OAuth2Service oAuth2Service;
     private final CustomOAuth2SuccessHandler successHandler;
     private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // 💡 추가
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {

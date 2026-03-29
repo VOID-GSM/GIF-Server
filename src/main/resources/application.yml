@@ -16,6 +16,10 @@ spring:
       hibernate:
         format_sql: true
 
+  file:
+    resource-location: file:///C:/upload/
+    upload-dir: C:/upload/
+
   security:
     oauth2:
       client:

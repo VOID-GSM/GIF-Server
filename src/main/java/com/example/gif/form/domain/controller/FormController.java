@@ -31,7 +31,7 @@ public class FormController {
     public void submit(
             @PathVariable Long formId,
             @RequestPart FormSubmitRequest request,
-            @RequestPart(required = false) List<MultipartFile> files
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
         formService.submit(formId, request, files);
     }

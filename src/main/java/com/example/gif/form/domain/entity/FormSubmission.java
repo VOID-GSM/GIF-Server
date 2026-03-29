@@ -30,4 +30,11 @@ public class FormSubmission {
     public void addAnswer(FormAnswer answer) {
         answers.add(answer);
     }
+
+    public static FormSubmission create(Form form, Long userId) {
+        return FormSubmission.builder()
+                .form(form)
+                .userId(userId)
+                .build();
+    }
 }

@@ -26,12 +26,12 @@ public class FormAnswer {
     @JoinColumn(name = "field_id")
     private FormField field;
 
-    public static FormAnswer of(FormSubmission submission, FormField field, String answer, String fileUrl) {
+    public static FormAnswer create(String answer, String fileUrl, FormSubmission submission, FormField field) {
         return FormAnswer.builder()
-                .submission(submission)
-                .field(field)
                 .answer(answer)
                 .fileUrl(fileUrl)
+                .submission(submission)
+                .field(field)
                 .build();
     }
 }

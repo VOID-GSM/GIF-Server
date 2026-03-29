@@ -1,6 +1,5 @@
 package com.example.gif.form.domain.service;
 
-import com.example.gif.form.domain.dto.AnswerRequest;
 import com.example.gif.form.domain.dto.FormCreateRequest;
 import com.example.gif.form.domain.dto.FormSubmitRequest;
 import com.example.gif.form.domain.entity.*;
@@ -51,26 +50,27 @@ public class FormService {
         Form form = formRepository.findById(formId)
                 .orElseThrow();
 
-        FormSubmission submission = FormSubmission.builder()
-                .form(form)
-                .userId(1L)
-                .build();
+        FormSubmission submission = FormSubmission.create(form, request.getUserId());
 
-        int fileIndex = 0;
+        for (int i = 0; i < request.getAnswers().size(); i++) {
 
-        for (AnswerRequest req : request.getAnswers()) {
+            FormSubmitRequest.AnswerDto dto = request.getAnswers().get(i);
 
-            FormField field = fieldRepository.findById(req.getFieldId())
-                    .orElseThrow();
+            String fileUrl = null;
 
-            FormAnswer answer;
-
-            if (field.getType() == FieldType.FILE) {
-                String url = fileService.upload(files.get(fileIndex++));
-                answer = FormAnswer.of(submission, field, null, url);
-            } else {
-                answer = FormAnswer.of(submission, field, req.getAnswer(), null);
+            if (files != null && files.size() > i && !files.get(i).isEmpty()) {
+                fileUrl = fileService.upload(files.get(i));
             }
+
+            FormField field = fieldRepository.findById(dto.getFieldId())
+                    .orElseThrow(() -> new RuntimeException("필드가 존재하지 않습니다"));
+
+            FormAnswer answer = FormAnswer.create(
+                    dto.getAnswer(),
+                    fileUrl,
+                    submission,
+                    field
+            );
 
             submission.addAnswer(answer);
         }

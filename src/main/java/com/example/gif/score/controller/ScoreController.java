@@ -11,8 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/score")
 public class ScoreController {
-    private ScoreService scoreService;
-    private ScoreRepository scoreRepository;
+    private final ScoreService scoreService;
+    private final ScoreRepository scoreRepository;
+
+    public ScoreController(ScoreService scoreService, ScoreRepository scoreRepository) {
+        this.scoreService = scoreService;
+        this.scoreRepository = scoreRepository;
+    }
 
     @PostMapping
     public ResponseEntity<?> createScore() {}

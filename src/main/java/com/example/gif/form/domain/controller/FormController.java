@@ -1,6 +1,7 @@
 package com.example.gif.form.domain.controller;
 
 import com.example.gif.form.domain.dto.FormCreateRequest;
+import com.example.gif.form.domain.dto.FormResponse;
 import com.example.gif.form.domain.dto.FormSubmitRequest;
 import com.example.gif.form.domain.entity.Form;
 import com.example.gif.form.domain.service.FormService;
@@ -23,10 +24,9 @@ public class FormController {
     }
 
     @GetMapping("/{formId}")
-    public Form get(@PathVariable Long formId) {
+    public FormResponse get(@PathVariable Long formId) {
         return formService.getForm(formId);
     }
-
     @PostMapping("/{formId}/submit")
     public void submit(
             @PathVariable Long formId,

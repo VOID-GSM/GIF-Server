@@ -1,6 +1,7 @@
 package com.example.gif.form.domain.service;
 
 import com.example.gif.form.domain.dto.FormCreateRequest;
+import com.example.gif.form.domain.dto.FormResponse;
 import com.example.gif.form.domain.dto.FormSubmitRequest;
 import com.example.gif.form.domain.entity.*;
 import com.example.gif.form.domain.repository.FormFieldRepository;
@@ -40,7 +41,7 @@ public class FormService {
         formRepository.save(form);
     }
 
-    public Form getForm(Long formId) {
+    public Form getFormEntity(Long formId) {
         return formRepository.findById(formId)
                 .orElseThrow(() -> new RuntimeException("양식이 존재하지 않습니다"));
     }
@@ -76,5 +77,27 @@ public class FormService {
         }
 
         submissionRepository.save(submission);
+    }
+
+    public FormResponse getForm(Long formId) {
+
+        Form form = formRepository.findById(formId)
+                .orElseThrow();
+
+        return FormResponse.builder()
+                .id(form.getId())
+                .title(form.getTitle())
+                .deadline(form.getDeadline())
+                .createdBy(form.getCreatedBy())
+                .fields(
+                        form.getFields().stream()
+                                .map(f -> FormResponse.FieldResponse.builder()
+                                        .id(f.getId())
+                                        .question(f.getQuestion())
+                                        .type(f.getType().name())
+                                        .build()
+                                ).toList()
+                )
+                .build();
     }
 }

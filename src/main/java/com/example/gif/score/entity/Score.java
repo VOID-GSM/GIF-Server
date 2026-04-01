@@ -42,8 +42,9 @@ public class Score {
     private int rank;
 
     @Builder
-    public Score(Project project, Integer technicalScore, Integer socialValueScore, Integer aiUtilityScore, Integer presentationScore) {
+    public Score(Project project, String evaluatorId, Integer technicalScore, Integer socialValueScore, Integer aiUtilityScore, Integer presentationScore) {
         this.project = project;
+        this.evaluatorId = evaluatorId;
         this.technicalScore = technicalScore;
         this.socialValueScore = socialValueScore;
         this.aiUtilityScore = aiUtilityScore;
@@ -51,8 +52,7 @@ public class Score {
         calculateSubTotalScore();
     }
 
-    public void updateScore(Integer technicalScore, Integer socialValueScore,
-                            Integer aiUtilityScore, Integer presentationScore) {
+    public void updateScore(Integer technicalScore, Integer socialValueScore, Integer aiUtilityScore, Integer presentationScore) {
         this.technicalScore = technicalScore;
         this.socialValueScore = socialValueScore;
         this.aiUtilityScore = aiUtilityScore;

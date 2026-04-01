@@ -1,30 +1,30 @@
 package com.example.gif.score.controller;
 
-import com.example.gif.score.repository.ScoreRepository;
+import com.example.gif.score.dto.Request.ScoreRequestDto;
+import com.example.gif.score.dto.Response.RankResponseDto;
 import com.example.gif.score.service.ScoreService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/score")
+@RequestMapping("/api/scores")
+@RequiredArgsConstructor
 public class ScoreController {
-    private final ScoreService scoreService;
-    private final ScoreRepository scoreRepository;
 
-    public ScoreController(ScoreService scoreService, ScoreRepository scoreRepository) {
-        this.scoreService = scoreService;
-        this.scoreRepository = scoreRepository;
-    }
+    private final ScoreService scoreService;
 
     @PostMapping
-    public ResponseEntity<?> createScore() {}
+    public ResponseEntity<String> saveScore(@RequestBody ScoreRequestDto dto) {
+        scoreService.saveScore(dto);
+        return ResponseEntity.ok("점수가 성공적으로 저장되었습니다.");
+    }
 
-    @GetMapping
-    public ResponseEntity<?> getScore() {}
-
-    @GetMapping("/rank")
-    public ResponseEntity<?> getRank() {}
+    @GetMapping("/ranking")
+    public ResponseEntity<List<RankResponseDto>> getFinalRanking() {
+        List<RankResponseDto> ranking = scoreService.getFinalRanking();
+        return ResponseEntity.ok(ranking);
+    }
 }

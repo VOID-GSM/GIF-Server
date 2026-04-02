@@ -5,6 +5,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ScoreUpdateReqeustDto {
+public class ScoreUpdateRequestDto {
     private Long scoreId;
 }

@@ -129,10 +129,10 @@ public class ScoreService {
             return new ScoreResponseDto(project.getTeamName(), 0, 0, 0, 0, 0);
         }
 
-        int avgTech = (int) scores.stream().mapToInt(Score::getTechnicalScore).sum() / count;
-        int avgSocial = (int) scores.stream().mapToInt(Score::getSocialValueScore).sum() / count;
-        int avgAi = (int) scores.stream().mapToInt(Score::getAiUtilityScore).sum() / count;
-        int avgPres = (int) scores.stream().mapToInt(Score::getPresentationScore).sum() / count;
+        int avgTech = scores.stream().mapToInt(Score::getTechnicalScore).sum() / count;
+        int avgSocial = scores.stream().mapToInt(Score::getSocialValueScore).sum() / count;
+        int avgAi = scores.stream().mapToInt(Score::getAiUtilityScore).sum() / count;
+        int avgPres = scores.stream().mapToInt(Score::getPresentationScore).sum() / count;
 
         int finalTotal = avgTech + avgSocial + avgAi + avgPres;
 

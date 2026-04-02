@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ScoreRequestDto {
     private Long projectId;
+    private String evaluatorId;
     private Integer technicalScore;
     private Integer socialValueScore;
     private Integer aiUtilityScore;

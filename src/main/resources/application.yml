@@ -1,3 +1,6 @@
+server:
+  forward-headers-strategy: native
+
 spring:
   application:
     name: ${DB_NAME}
@@ -17,8 +20,8 @@ spring:
         format_sql: true
 
   file:
-    resource-location: file:///C:/upload/
-    upload-dir: C:/upload/
+    resource-location: ${UPLOAD_DIR:/uploads/}
+    upload-dir: ${UPLOAD_DIR:/uploads/}
 
   security:
     oauth2:

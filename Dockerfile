@@ -1,16 +1,7 @@
-FROM eclipse-temurin:24-jdk-alpine AS builder
-WORKDIR /app
-COPY gradle gradle
-COPY gradlew .
-COPY build.gradle .
-COPY settings.gradle .
-COPY src src
-RUN sed -i 's/\r$//' gradlew && chmod +x gradlew && ./gradlew build -x test --no-daemon
-
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY build/libs/GIF-0.0.1-SNAPSHOT.jar app.jar
 RUN chown appuser:appgroup app.jar
 USER appuser
 EXPOSE 8080

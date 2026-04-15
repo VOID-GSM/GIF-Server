@@ -7,21 +7,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
+
       - name: 소유자명 소문자 변환
         run: echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: JDK 25 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Gradle 설정
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Gradle 실행 권한 부여
+        run: chmod +x gradlew
+
+      - name: Gradle 빌드
+        run: ./gradlew clean build -x test
+
       - name: GHCR 로그인
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Docker 이미지 빌드 및 푸시
         run: |
           docker buildx build --progress=plain \
             -t ghcr.io/${{ env.OWNER }}/gif-server:latest \
             --push \
             .
+
+      - name: 서버로 파일 전송 (SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: 37670
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yml,nginx/nginx.conf,nginx/ssl-init.sh"
+          target: "~/gif-server"
+
       - name: 서버 배포 (SSH)
         uses: appleboy/ssh-action@v1
         with:
@@ -30,10 +59,37 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ~/gif-server
+            set -e
+            mkdir -p ~/gif-server/nginx/ssl
+
+            cat > ~/gif-server/.env << EOF
+            DOMAIN=${{ secrets.DOMAIN }}
+            DB_HOST=jdbc:mysql://mariadb:3306/${{ secrets.DB_NAME }}?serverTimezone=Asia/Seoul
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
+            DB_DDL=update
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            JWT_EXPIRATION=3600000
+            UPLOAD_DIR=/uploads/
+            IMAGE_NAME=${{ env.OWNER }}/gif-server
+            EOF
+
+            if [ ! -f ~/gif-server/nginx/ssl/fullchain.pem ]; then
+              echo "ERROR: SSL 인증서 없음. 서버에서 먼저 실행하세요:"
+              echo "  sudo bash ~/gif-server/nginx/ssl-init.sh ${{ secrets.DOMAIN }}"
+              exit 1
+            fi
+
             docker pull ghcr.io/${{ env.OWNER }}/gif-server:latest
-            IMAGE_NAME=${{ env.OWNER }}/gif-server docker-compose up -d --remove-orphans
+
+            cd ~/gif-server
+            docker compose up -d --remove-orphans
             docker image prune -f
+
       - name: GIF_SERVER CD Discord Notification (success)
         if: ${{ success() }}
         uses: sarisia/actions-status-discord@v1
@@ -44,6 +100,7 @@ jobs:
           description: '서버 배포 성공'
           color: 65280
           username: 'GIF-SERVER-bot'
+
       - name: GIF_SERVER CD Discord Notification (failure)
         if: ${{ failure() }}
         uses: sarisia/actions-status-discord@v1

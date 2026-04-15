@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-@Service
+@Service("projectFileService")
 public class FileService {
 
     @Value("${spring.file.upload-dir}")

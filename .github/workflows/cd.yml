@@ -84,6 +84,7 @@ jobs:
               exit 1
             fi
 
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ env.OWNER }} --password-stdin
             docker pull ghcr.io/${{ env.OWNER }}/gif-server:latest
 
             cd ~/gif-server

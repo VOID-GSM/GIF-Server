@@ -72,7 +72,8 @@ jobs:
 
             cd ~/gif-server
             docker build -t gif-server:latest .
-            docker-compose up -d --remove-orphans
+            docker-compose down
+            docker-compose up -d
             docker image prune -f
 
             docker-compose exec -T nginx nginx -s reload || true

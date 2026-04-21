@@ -72,10 +72,10 @@ jobs:
 
             cd ~/gif-server
             docker build -t gif-server:latest .
-            docker compose up -d --remove-orphans
+            docker-compose up -d --remove-orphans
             docker image prune -f
 
-            docker compose exec -T nginx nginx -s reload || true
+            docker-compose exec -T nginx nginx -s reload || true
 
       - name: GIF_SERVER CD Discord Notification (success)
         if: ${{ success() }}

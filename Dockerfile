@@ -1,4 +1,4 @@
-#내가 다시 작성한 Dockerfile
+
 FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app

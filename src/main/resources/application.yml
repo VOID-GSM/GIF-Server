@@ -3,17 +3,17 @@ server:
 
 spring:
   application:
-    name: ${DB_NAME}
+    name: ${SPRING_APPLICATION_NAME:gwangju_festival}
 
   datasource:
-    url: ${DB_HOST}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: ${DB_DDL}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
     properties:
       hibernate:

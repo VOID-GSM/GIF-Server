@@ -45,5 +45,5 @@ oauth2:
     google-uri: /oauth2/authorization/google
 
 jwt:
-  secret: ${JWT_SECRET_KEY}
-  expiration-time: ${JWT_EXPIRATION}
+  secret: ${JWT_SECRET_KEY:4c5c48f97318aa1f2b44414c5782e85bda64d7cdd3a906138e7370af188e3360}
+  expiration-time: ${JWT_EXPIRATION:86400000}
